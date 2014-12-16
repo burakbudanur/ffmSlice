@@ -1,0 +1,65 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\input{def}
+
+\title{Adapting ETDRK4 (Kassam \& Trefethen 2003) for integrating 
+	   \KS\ equation in the first Fourier mode slice}
+\author{Nazmi Burak Budanur}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+In \BCDS, we adapted Exponential time differencing fourth-order Runge-Kutta
+(ETDRK4) method for integrating 1D \KS\ system within the first Fourier mode
+slice hyperplane. In this short document, we present details of this
+implementation which are not immediately related to the content of \BCDS.
+
+\section*{Implementation}
+
+ETDRK4 method is used to solve nonlinear ODEs of the following form:
+\begin{equation}
+	\dot{\sspC} = \vel (\sspC) = L \sspC + N(\sspC) \, ,
+	\label{e-ODE}
+\end{equation}	
+where $\sspC \in \man$ is a complex valued state space vector, $L$ is a matrix
+and $N(\sspC)$ is a nonlinear function. \KS\ equation is of this form with
+$L_{kl} = (q_k^2 - q_k^4) \delta_{kl}$ (diagonal), $N_k (a) = - i \frac{q_k}{2}
+\sum_{m=-\infty}^{\infty} \Fu_m \Fu_{k - m}$ and $\sspC = (\Fu_1, \Fu_2, \Fu_3,
+\ldots)^T\,\mbox{where, } \Fu (\zeit) = \Fourier \{u(x, \zeit)\} $. Numerical
+integration of \KS\ equation is explained in detail, with a Matlab code in 
+\KasTre . This is the code that our implementation \texttt{ksETDRK4red.m} is
+based on. In the complex representation, dynamical equations with respect to
+the first Fourier mode slice time yields
+\begin{eqnarray}
+	\frac{d \sspRed}{d \zeitRed}  &=& Re[\sspRed_1] \vel(\sspRed)
+	- Im[\vel(\sspRed)_1] \, \groupTan(\sspRed) \label{e-ffSliceStatsp}
+	\\
+	\frac{d \gSpace}{d \zeitRed} &=& Im[\vel(\sspRed)_1] \label{e-ffSlicePhase}
+	\,.
+\end{eqnarray}
+where, $d \zeitRed = Re[\sspRed_1]^{-1} d \zeit$ is the in-slice time,
+$\groupTan(\sspRed) = T \sspRed $ is the group tangent. In the complex
+representation, $SO(2)$ symmetry becomes $U(1)$, hence $T_{kl} = i \,
+k\delta_{kl}$. Linear and nonlinear parts of equation \ref{e-ffSliceStatsp} are
+not immediately separable, however, we can add and subtract a constant $\alpha$
+to $Re[\sspRed_1]$ in \ref{e-ffSliceStatsp} and rewrite it as follows
+\begin{equation}
+	\frac{d \sspRed}{d \zeitRed} = \tilde{L} \sspRed + \tilde{N}(\sspRed) .
+\end{equation}
+where, 
+\begin{eqnarray}
+	\tilde{L} &=& \alpha L ,
+	  \\
+	\tilde{N}(\sspRed) &=& N(\sspRed) + (Re[\sspRed_1] - \alpha) \vel (\sspRed)
+	  			- Im[\vel(\sspRed)_1] \, \groupTan(\sspRed) .
+\end{eqnarray}	
+In our implementation, we set the parameter $\alpha$ experimentally to $1$.
+\end{document}
